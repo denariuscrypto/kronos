@@ -1,0 +1,216 @@
+span#lanip(data-value=lanip)
+span#ethaccount(data-value=ethaddress)
+//- script(src="/socket.io/socket.io.js")
+script(src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js")
+script(src='https://unpkg.com/3box/dist/3box.min.js')
+script.
+  var lanip = document.getElementById("lanip").getAttribute("data-value");
+  var socket = io('//'+ lanip +':3300');
+  socket.on('disconnect', () => {
+      socket.open();
+  });
+  function togglesearch() {
+      var x = document.getElementById("searchinput");
+      if (x.style.display === "none") {
+        x.style.display = "block";
+      } else {
+        x.style.display = "none";
+      }
+    }
+    var ethaddy = document.getElementById("ethaccount").getAttribute("data-value");
+    Box.getProfile(ethaddy).then(profile => {
+      //console.log(profile);
+      var profileimage;
+
+      if (typeof profile.image == 'undefined') {
+          profileimage = profile.image;
+          //console.log(profileimage);
+          var boximage = '';
+          if (typeof profileimage == 'undefined') {
+              boximage = '../img/avatar.png'; //IPFS Default Avatar Hash
+          } else {
+              profileimage = profile.image[0].contentUrl['/'];
+              boximage = 'https://cloudflare-ipfs.com/ipfs/' + profileimage;
+          }
+          //console.log(boximage);
+
+          $("#threebox").html('<img src="'+boximage+'" border="0" class="res threebox"/>');
+          $("#threebox").val(boximage);
+          document.getElementById("threebox").setAttribute("data-value", boximage);
+
+      } else {
+          profileimage = profile.image[0].contentUrl['/'];
+          //console.log(profileimage);
+          var boximage = '';
+          if (typeof profileimage == 'undefined') {
+              boximage = '../img/avatar.png'; //IPFS Default Avatar Hash
+          } else {
+              profileimage = profile.image[0].contentUrl['/'];
+              boximage = 'https://cloudflare-ipfs.com/ipfs/' + profileimage;
+          }
+          //console.log(boximage);
+
+          $("#threebox").html('<img src="'+boximage+'" border="0" class="res threebox"/>');
+          $("#threebox").val(boximage);
+          document.getElementById("threebox").setAttribute("data-value", boximage);
+      }
+
+    });
+  //- socket.on('notifications', function (data) {
+  //-     console.log('GOT NOTIFY', data);
+  //-     if (data.notifydb != '') {
+  //-       $('#notify').html("<div class='notifytx animate__animated animate__zoomInRight' id='notificationtx' style='background-color:#000000e8;border:3px solid #ffffff3d;border-radius:15px;padding:30px;font-size:13px;width:600px;position:fixed;right:0;bottom:5px;z-index:9999999;display:visible;' align='center'>Denarius TX Notification<br/><a href='/tx/"+ data.notifydb.toString() +"' style='color:#999;font-size:0.85rem;'>"+ data.notifydb.toString() +"</a><div id='buttonfloat' style='top:36px;position:absolute;right:15px;' onclick='closeNotify()'><button type='submit' style='background-color:transparent;color:#666;border:none;' onclick='closeNotify()'>X</button></div></div>");
+  //-     }
+  //- });
+  function closeNotify() {
+    var c = document.getElementById("notificationtx")
+    c.style.display = "none";
+  }
+.navbar.navbar-default.navbar-fixed-top
+  .hcontainer
+    .navbar-header
+      button.navbar-toggle.pull-right.ml(type='button', data-toggle='collapse', data-target='.navbar-collapse')
+        span.sr-only Toggle navigation
+        span.icon-bar
+        span.icon-bar
+        span.icon-bar
+      .navbar-brand
+        img.res(src='../img/klogo.svg', alt='Kronos', border='0')
+    .collapse.navbar-collapse
+      ul.nav.navbar-nav
+          li(class=(title == 'Dashboard') ? 'active' : undefined)
+            a(href='http://'+lanip+':3000/dashsimple', onclick="javascript:event.target.port=3000") 
+              i.fas.fa-tachometer-alt  
+              |   Dashboard
+          li(class=(title == 'Chat') ? 'active' : undefined)
+            a(href='http://'+lanip+':3000/chat', onclick="javascript:event.target.port=3000") 
+              i.fas.fa-comment-dots   
+              |   Chat
+          //- li.dropdown(class=(title == 'Wallet') ? 'active' : undefined)
+          //-   a.dropdown-toggle(href='#', data-toggle='dropdown')
+          //-     span 
+          //-     i.fa.fa-wallet  
+          //-     |   Wallet
+          //-     i.caret
+          //-   ul.dropdown-menu
+          //-     li
+          //-       a(href='http://'+lanip+':3000/transactions', onclick="javascript:event.target.port=3000") 
+          //-         i.fas.fa-exchange-alt  
+          //-         |   Transactions
+          //-     li.divider
+          //-     li
+          //-       a(href='http://'+lanip+':3000/addresses', onclick="javascript:event.target.port=3000") 
+          //-         i.fas.fa-at  
+          //-         |   Addresses
+          //-     li.divider
+          //-     li
+          //-       a(href='http://'+lanip+':3000/backup', onclick="javascript:event.target.port=3000") 
+          //-         i.fas.fa-server  
+          //-         |   Backup Wallet
+              //- li.divider(style=sendicon)
+              //- li(style=sendicon)
+              //-   a(href='http://'+lanip+':3000/import', onclick="javascript:event.target.port=3000") 
+              //-     i.fas.fa-key   
+              //-     |   Import a private key
+          //- li.dropdown(class=(title == 'Tools') ? 'active' : undefined)
+          //-   a.dropdown-toggle(href='#', data-toggle='dropdown')
+          //-     span 
+          //-     i.fas.fa-tools  
+          //-     |   Tools 
+          //-     i.caret
+            //- ul.dropdown-menu
+              //- li(style=sendicon)
+              //-   a(href='http://'+lanip+':3000/rawtx', onclick="javascript:event.target.port=3000") 
+              //-     i.far.fa-paper-plane  
+              //-     |   Send Raw Transaction
+              //- li.divider
+              //- li
+              //-   a(href='http://'+lanip+':3000/genmini', onclick="javascript:event.target.port=3000") 
+              //-     i.fas.fa-plus   
+              //-     |   Generate Minikey
+              //- li
+              //-   a(href='http://'+lanip+':3000/convertmini', onclick="javascript:event.target.port=3000") 
+              //-     i.fas.fa-sync-alt    
+              //-     |   Convert Minikey
+      ul.nav.navbar-nav.centerbal
+          li
+            a(href='http://'+lanip+':3000/createtx', style='font-size:14px;color:#FFF;')#htotalbal #{totalbal || 0} 
+              img.res(src='../img/denarius.png', alt='D', border='0', style='height:24px !important;width: 24px !important;margin:-15px 5px -12px !important;')
+              span(style='color:#888;') D
+          li
+            a(href='http://'+lanip+':3000/createtx', style='border-right:1px #444 solid;padding-left:0px !important;')
+              div(style='background-color:#4f4f4f;border-radius:15px;padding-right:8px;padding-left:8px;font-size:12px;color:#fff;')
+                i.fas.fa-arrow-right
+          li
+            a(href='http://'+lanip+':3000/sendeth', style='font-size:14px;color:#FFF;')#htotalethbal #{totalethbal || 0} 
+              img.res(src='../img/eth.png', alt='ETH', border='0', style='height:24px !important;width: 24px !important;margin:-15px 0px -12px !important;')
+              span(style='color:#888;') ETH
+          li
+            a(href='http://'+lanip+':3000/sendeth', style='border-right:1px #444 solid;padding-left:0px !important;')
+              div(style='background-color:#3f3b54;border-radius:15px;padding-right:8px;padding-left:8px;font-size:12px;color:#fff;')
+                i.fas.fa-arrow-right
+          li
+            a(href='http://'+lanip+':3000/sendari', style='font-size:14px;color:#FFF;')#htotalaribal #{totalaribal || 0} 
+              img.res(src='../img/ari.png', alt='ARI', border='0', style='height:24px !important;width: 24px !important;margin:-15px 5px -12px !important;')
+              span(style='color:#888;') ARI
+          li
+            a(href='http://'+lanip+':3000/sendari', style='padding-left:0px !important;')
+              div(style='background-color:#3d1f56;border-radius:15px;padding-right:8px;padding-left:8px;font-size:12px;color:#fff;')
+                i.fas.fa-arrow-right
+          //- if (staketoggle == 'Staking')
+          //-   li.animate__animated.animate__pulse.animate__infinite
+          //-     a(style='padding-top:18px !important;')
+          //-       .label.label-success(style='background-color:#41B805;')  
+          //-         i.fas.fa-coins  
+          //-         |  #{staketoggle}
+      ul.nav.navbar-nav.navbar-right
+          li
+                a 
+                  .label(style='color: #0c50ff; cursor: default; font-size:16px; background: linear-gradient(317deg, rgba(221,76,76,1) 0%, rgba(208,170,57,1) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;') Core Mode  
+          li
+            a(onClick='window.location.href = window.location.href;')
+                i.fa.fa-sync.animate__animated.animate__rotateIn(style='cursor:pointer;')
+          li.dropdown(class=(title == 'Community') ? 'active' : undefined)
+            a.dropdown-toggle(href='#', data-toggle='dropdown')
+              span 
+                i.fas.fa-cog
+              i.caret
+            ul.dropdown-menu
+              //- li
+              //-   a(href='http://'+lanip+':3000/settings', onclick="javascript:event.target.port=3000")
+              //-     i.fas.fa-wrench  
+              //-     |    Settings
+              //- li.divider
+              //- li
+              //-   a(href='http://'+lanip+':3300/terminal', onclick="javascript:event.target.port=3300")
+              //-     i.fas.fa-terminal  
+              //-     |   Terminal 
+              li
+                a(href='http://'+lanip+':3000/sseed', onclick="javascript:event.target.port=3000")
+                  i.fas.fa-mask     
+                  |   View Seed
+              li
+                a(href='http://'+lanip+':3000/sweep', onclick="javascript:event.target.port=3000")
+                  i.fa.fa-key
+                  |   Sweep Private Key
+              li
+                a(href='http://'+lanip+':3000/import', onclick="javascript:event.target.port=3000")
+                  i.fas.fa-arrow-circle-down
+                  |   Import Seed
+              li.divider
+              li
+                a(href='https://blockforums.org', target='_blank') 
+                  i.fas.fa-bold 
+                  |   BlockForums
+              li
+                a(href='https://discord.gg/UPpQy3n', target='_blank')
+                  i.fab.fa-discord 
+                  |   Denarius Discord
+              li.divider
+              li
+                a(href='http://'+lanip+':3000/logout', onclick="javascript:event.target.port=3000")
+                  i.fas.fa-sign-out-alt  
+                  |   Logout
+          li
+            a(href='http://'+lanip+':3000/chat', onclick="javascript:event.target.port=3000")
+                #threebox

@@ -2,7 +2,7 @@ extends ../layout
 
 block content
   span#lanip(data-value=lanip)
-  script(src="/socket.io/socket.io.js")
+  script(src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js")
   script.
     var lanip = document.getElementById("lanip").getAttribute("data-value");
     var socket = io('//'+ lanip +':3300');

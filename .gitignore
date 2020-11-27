@@ -13,6 +13,14 @@ logs
 results
 tmp
 kronosleveldb
+data
+out
+package-lock.json
+.env
+ipfs
+orbitdb
+electron-builder.yml
+dist
 
 # Dependency directory
 node_modules

@@ -1,60 +1,38 @@
 # Kronos
-#### Denarius Dashboard and AIO Interface
+#### A Dashboard Interface and Wallet for Denarius (D), Ethereum (ETH), and Denarii (ARI) in NodeJS and Electron
 =======================
-![Kronos Logo](https://user-images.githubusercontent.com/10162347/85915874-88a53900-b808-11ea-9a0f-1b68b7a2e61e.png)
+![Kronos Logo](https://user-images.githubusercontent.com/10162347/93870495-8bd68680-fc8a-11ea-85f7-a5ca7b52d1ba.png)
 
 [![Build Status](https://travis-ci.org/carsenk/kronos.svg?branch=master)](https://travis-ci.org/carsenk/kronos) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/carsenk/kronos) [![Dependency Status](https://david-dm.org/carsenk/kronos/status.svg?style=flat)](https://david-dm.org/carsenk/kronos) [![devDependencies Status](https://david-dm.org/carsenk/kronos/dev-status.svg)](https://david-dm.org/carsenk/kronos?type=dev) [![Join the chat at https://discord.gg/UPpQy3n](https://img.shields.io/badge/Discord-Chat-blue.svg?logo=discord)](https://discord.gg/UPpQy3n)
 
 [![HitCount](http://hits.dwyl.io/carsenk/kronos.svg)](http://hits.dwyl.io/carsenk/kronos)
 <a href="https://discord.gg/UPpQy3n"><img src="https://discordapp.com/api/guilds/334361453320732673/embed.png" alt="Discord server" /></a>
+![Code Climate](https://codeclimate.com/github/carsenk/kronos/badges/gpa.svg)
 
-Kronos - A secondary layer NodeJS/Socket.io/Express/Denarius powered Web Wallet Dashboard with Statistics of your device typically on your LAN by default, though can be setup to be accessed remotely. This is a major project with active development in progress and this repo will be updated in time, be warned, things can break and always always backup backup backup!
+[![Build history](https://buildstats.info/travisci/chart/carsenk/kronos?branch=master)](https://travis-ci.org/carsenk/kronos?branch=master)
 
-Send and Receive Funds, Create new addresses, View Transactions, Unlock/Lock Wallet, Stake D, Reboot your node, Import Private Keys, View Private Keys, Encrypt your wallet, Broadcast raw transactions, Sign and Verify Denarius messages, and much more!
+Kronos - Wallet Dashboard Interface. This is a massive project with active development in progress and this repo will be updated in time, be warned, things can break and always always backup backup backup!
+
+Send and Receive D, ETH, and ARI Funds, create new addresses, view transactions, unlock/lock wallet, stake D, reboot your node, import private keys, encrypt your wallet, broadcast raw transactions, sign and verify Denarius messages, and much more!
 
 This was built for the Raspberry Pi in mind and one with at least 2GB of RAM. 4GB and 8GB models are recommended! Kronos will run on any Linux distro with a minimal amount of 2GB of RAM.
 
-Running the installer script below installs denarius via snap install and then modifies your .env in Kronos and denarius.conf to a random rpcuser and rpcpass, Kronos will then be running on your LAN (192.168.x.x:3000) on port 3000.
+Running the Kronos headless installer script below installs denarius via snap install and then modifies your .env in Kronos and denarius.conf to a random rpcuser and rpcpass, Kronos will then be running on your LAN (192.168.x.x:3000) on port 3000.
 
-Install Kronos with Denarius Now!
------------------
-
-Simply run the single command below in your Terminal or via SSH, then choose one of the options if you want to Install Kronos with or without Denarius chaindata or if you want to just update!:
-
-```bash
-wget -qO- https://raw.githubusercontent.com/carsenk/kronos/master/installkronos.sh | bash
-```
-or
-```bash
-curl -o- https://raw.githubusercontent.com/carsenk/kronos/master/installkronos.sh | bash
-```
-
-You can choose an option 1-3 from the installer script above to either install Kronos, install Kronos with Denarius chaindata, or Update Kronos!
+# [GET STARTED USING KRONOS](https://github.com/carsenk/kronos/blob/master/GETTING-STARTED.md)
 
 Recommended Devices and OS
 -----------------
-* Raspberry Pi 4 4GB - Ubuntu 20.04 Server Image
-* Raspberry Pi 4 8GB - Ubuntu 20.04 Server Image
-* Ubuntu 20.04
-* Ubuntu 19.10
-* Ubuntu 19.04
-* Ubuntu 18.04
-* Ubuntu 16.04
-* Raspberry Pi OS
-
-* Linux Mint
-* Debian
-* Arch Linux
-* Fedora
-* Red Hat
-* Manjaro
-* ZorinOS
-* elementaryOS
-* CentOS
-* openSUSE
+* Windows 10
+* macOS 10.11 or greater
+* Linux (Any modern distro, Ubuntu preferred)
+* 4GB RAM recommended for Advanced Mode with Denarius running
+* 2GB RAM recommended for Core Mode without Denarius running
 
 Screenshots
 -----------------
+![coremode](https://user-images.githubusercontent.com/10162347/97545811-26fd0300-1991-11eb-8423-8d82f6e5ba74.png)
+
 ![ss](https://user-images.githubusercontent.com/10162347/85916042-00c02e80-b80a-11ea-859f-7f82d17353c9.png)
 
 ![ss2](https://user-images.githubusercontent.com/10162347/85956259-09b41b80-b942-11ea-8b74-2ab4a7540872.gif)
@@ -65,6 +43,8 @@ Screenshots
 Features
 --------
 
+- Send and Receive D and ETH and ARI in Core Mode
+- Core Mode and Advanced Mode
 - Send and Receive D
 - Wallet Addresses
 - Address Balances Powered by Scripthash and ElectrumX (denarius.pro)
@@ -94,55 +74,37 @@ Features
 
 -More features will be coming!
 
+Changes
+-------------
+As of v1.5.0 Beta of Kronos it is now built with Electron for Windows, macOS, and Linux as an AIO app to use alongside a Denarius node.
+
+As of v1.5.5 Beta of Kronos it now features multi modes "Core" which only relays on ElectrumX SPV Servers and a more "Pro" mode where you can configure the RPC details to your Denarius node.
+
+As of v1.6.0 Beta of Kronos it now features ETH and ARI support fully, you can send and receive ARI or ETH in Core Mode in Kronos
+
+As of v1.6.3 Beta of Kronos it now features using OS built keychain security for storing randomly generated secret keys for use with Kronos encryption.
+
+As of v1.7.5 Beta of Kronos it now has binaries built and auto updating for the binaries along with a dedicated data directory for Kronos data.
+
+As of v1.7.7 Beta of Kronos it now has decentralized encrypted chat between both Core and Advanced Modes. Importing of seed phrases in Core Mode is now available!
+
 Prerequisites
 -------------
 
 - [denariusd](https://github.com/carsenk/denarius)
-- [Node.js 6.0+](http://nodejs.org)
+- [Node.js 12+](http://nodejs.org)
 
 Getting Started
 ---------------
+[GET STARTED USING KRONOS](https://github.com/carsenk/kronos/blob/master/GETTING-STARTED.md)
 
-The easiest way to get started is to run the following bash command:
-
-```bash
-wget -qO- https://raw.githubusercontent.com/carsenk/kronos/master/installkronos.sh | bash
-```
-or
-```bash
-curl -o- https://raw.githubusercontent.com/carsenk/kronos/master/installkronos.sh | bash
-```
-
-```bash
-# Get the latest snapshot
-git clone --depth=1 https://github.com/carsenk/kronos.git kronos
-
-# Change directory
-cd kronos
-
-# Install NPM dependencies
-npm install
-
-# Then simply start Kronos
-node ./bin/kronos
-
-or
-
-npm start
-
-# Or, if you are using nodemon
-nodemon app.js
-
-#Or, if you are using forever
-forever start app.js
-```
 
 License
 -------
 
 The MIT License (MIT)
 
-Copyright (c) 2020 Carsen Klock
+Copyright (c) 2020-2021 Carsen Klock
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

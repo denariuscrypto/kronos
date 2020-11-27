@@ -1,7 +1,17 @@
+/*
+**************************************
+**************************************
+**************************************
+* Kronos Wallet Controller
+* Copyright (c) 2020 Carsen Klock
+**************************************
+**************************************
+**************************************
+*/
 'use esversion:6';
 
 const bitcoin = require('bitcoin');
-const WAValidator = require('wallet-address-validator');
+const WAValidator = require('wallet-address-validatord');
 const QRCode = require('qrcode');
 const unirest = require('unirest');
 const toastr = require('express-toastr');
@@ -18,38 +28,62 @@ const CryptoJS = require("crypto-js");
 const bip39 = require("bip39");
 const bip32 = require("bip32d");
 const denarius = require('denariusjs');
+const Storage = require('json-storage-fs');
+const os = require('os');
 
 var sendJSONResponse = function (res, status, content) {
     res.status(status);
     res.json(content);
 };
 
-const SECRET_KEY = process.env.SECRET_KEY;
+var currentOS = os.platform(); 
 
-// all config options are optional
-var client = new bitcoin.Client({
-    host: process.env.DNRHOST,
-    port: process.env.DNRPORT,
-    user: process.env.DNRUSER,
-    pass: process.env.DNRPASS,
-    timeout: 30000
-});
+if (currentOS === 'linux') {
+  let SECRET_KEY = process.env.KEY;
 
-function shahash(key) {
-	key = CryptoJS.SHA256(key, SECRET_KEY);
-	return key.toString();
+  function shahash(key) {
+      key = CryptoJS.SHA256(key, SECRET_KEY);
+      return key.toString();
+  }
+
+  function encrypt(data) {
+      data = CryptoJS.AES.encrypt(data, SECRET_KEY);
+      data = data.toString();
+      return data;
+  }
+
+  function decrypt(data) {
+      data = CryptoJS.AES.decrypt(data, SECRET_KEY);
+      data = data.toString(CryptoJS.enc.Utf8);
+      return data;
+  }
+
+} else {
+  let SECRET_KEY = process.env.KEY; //keytar.getPasswordSync('Kronos', 'localkey');
+
+  function shahash(key) {
+      key = CryptoJS.SHA256(key, SECRET_KEY);
+      return key.toString();
+  }
+
+  function encrypt(data) {
+      data = CryptoJS.AES.encrypt(data, SECRET_KEY);
+      data = data.toString();
+      return data;
+  }
+
+  function decrypt(data) {
+      data = CryptoJS.AES.decrypt(data, SECRET_KEY);
+      data = data.toString(CryptoJS.enc.Utf8);
+      return data;
+  }
 }
 
-function encrypt(data) {
-	data = CryptoJS.AES.encrypt(data, SECRET_KEY);
-	data = data.toString();
-	return data;
-}
-
-function decrypt(data) {
-	data = CryptoJS.AES.decrypt(data, SECRET_KEY);
-	data = data.toString(CryptoJS.enc.Utf8);
-	return data;
+if (typeof Storage.get('rpchost') == 'undefined') {
+	Storage.set('rpchost', '127.0.0.1');
+	Storage.set('rpcport', '32369');
+	Storage.set('rpcuser', 'null');
+	Storage.set('rpcpass', 'null');
 }
 
 /**
@@ -62,6 +96,16 @@ exports.getWithdraw = (req, res) => {
   const ipaddy = ip.address();
 
   res.locals.lanip = ipaddy;
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   client.walletStatus(function (err, ws, resHeaders) {
     if (err) {
@@ -170,6 +214,16 @@ exports.getRaw = (req, res) => {
 
   res.locals.lanip = ipaddy;
 
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
+
   client.walletStatus(function (err, ws, resHeaders) {
     if (err) {
       console.log(err);
@@ -276,6 +330,16 @@ exports.getPriv = (req, res) => {
 
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
   client.walletStatus(function (err, ws, resHeaders) {
@@ -388,6 +452,16 @@ exports.getSign = (req, res) => {
   const ip = require('ip');
   const ipaddy = ip.address();
 
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
+
   res.locals.lanip = ipaddy;
   client.walletStatus(function (err, ws, resHeaders) {
     if (err) {
@@ -495,6 +569,16 @@ exports.getVerify = (req, res) => {
   const ip = require('ip');
   const ipaddy = ip.address();
 
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
+
   res.locals.lanip = ipaddy;
   client.walletStatus(function (err, ws, resHeaders) {
     if (err) {
@@ -601,6 +685,16 @@ exports.getBackup = (req, res) => {
   //var username = req.user.email;
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
   client.walletStatus(function (err, ws, resHeaders) {
@@ -714,6 +808,16 @@ exports.addresses = function (req, res) {
 
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
 
@@ -885,7 +989,7 @@ exports.addresses = function (req, res) {
           electrum.addServer(delectrumxhost1);
           electrum.addServer(delectrumxhost2);
           electrum.addServer(delectrumxhost3);
-          electrum.addServer(delectrumxhost4);
+          //electrum.addServer(delectrumxhost4);
           
           // Wait for enough connections to be available.
           await electrum.ready();
@@ -1289,69 +1393,6 @@ exports.addresses = function (req, res) {
 });
 }
 
-exports.wallet = function (req, res) {
-    var username = req.user.email;
-
-    //List Balances
-    client.getBalance(`dnrw(${username})`, 10, function (error, balance, resHeaders) {
-        if (error) return console.log(error);
-
-        if (balance <= 0) {
-          balance = 0;
-        }
-
-        //List Transactions
-        client.listTransactions(`dnrw(${username})`, 5, function (err, transactions, resHeaders) {
-            if (err) return console.log(err);
-
-        //List Account Address
-        //client.getAccountAddress(`dnrw(${username})`, function (error, address, resHeaders) {
-        client.getAddressesByAccount(`dnrw(${username})`, function (err, addresses, resHeaders) {
-            if (error) return console.log(error);
-
-            var address = addresses.slice(-1)[0];
-
-            if (typeof address == 'undefined') {
-                client.getNewAddress(`dnrw(${username})`, function (error, addr, resHeaders) {
-                  if (error) return console.log(error);
-                  address = addr;
-                });
-            }
-
-            var qr = 'denarius:'+address;
-
-            unirest.get("https://api.coinmarketcap.com/v1/ticker/denarius-d/")
-              .headers({'Accept': 'application/json'})
-              .end(function (result) {
-                var usdprice = result.body[0]['price_usd'] * balance;
-                var btcprice = result.body[0]['price_btc'] * balance;
-
-            QRCode.toDataURL(qr, function(err, qrcode) {
-
-            res.render('account/wallet', { title: 'My Wallet', user: req.user, usd: usdprice.toFixed(2), btc: btcprice.toFixed(8), address: address, qrcode: qrcode, balance: balance.toFixed(8), transactions: transactions });
-
-            });
-          });
-          });
-        });
-    });
-    /**
-    var batch = [];
-    for (var i = 0; i < 10; ++i) {
-        batch.push({
-            method: 'getbalance',
-            params: [`dnrw(${username})`],
-            method: 'getaddressesbyaccount',
-            params: [`dnrw(${username})`]
-        });
-    }
-    client.cmd(batch, function (err, balance, addresses, resHeaders) {
-        if (err) return console.log(err);
-
-        console.log(`${username}`, 'Addresses:', addresses, 'Balance:', balance);
-    });
-    */
-};
 
 //POST GET NEW ADDRESS
 
@@ -1359,6 +1400,16 @@ exports.address = function (req, res) {
     //var username = req.user.email;
     const ip = require('ip');
     const ipaddy = ip.address();
+
+    //Connect to our D node 
+    //process.env.DUSER
+    const client = new bitcoin.Client({
+      host: decrypt(Storage.get('rpchost')),
+      port: decrypt(Storage.get('rpcport')),
+      user: decrypt(Storage.get('rpcuser')),
+      pass: decrypt(Storage.get('rpcpass')),
+      timeout: 30000
+    });
 
     res.locals.lanip = ipaddy;
 
@@ -1485,6 +1536,16 @@ exports.genkey = function (req, res) {
 
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
 
@@ -1613,6 +1674,16 @@ exports.withdraw = (req, res, next) => {
     var sendtoaddress = req.body.sendaddress;
     var amount = req.body.amount;
 
+    //Connect to our D node 
+    //process.env.DUSER
+    const client = new bitcoin.Client({
+      host: decrypt(Storage.get('rpchost')),
+      port: decrypt(Storage.get('rpcport')),
+      user: decrypt(Storage.get('rpcuser')),
+      pass: decrypt(Storage.get('rpcpass')),
+      timeout: 30000
+    });
+
     client.getBalance(function (error, info, resHeaders) {
         if (error) {
           console.log(error);
@@ -1623,7 +1694,7 @@ exports.withdraw = (req, res, next) => {
     var valid = WAValidator.validate(`${sendtoaddress}`, 'DNR'); //Need to update to D still
 
     if (parseFloat(amount) - fee > balance) {
-        req.toastr.error('Withdrawal amount exceeds your D balance!', 'Balance Error!', { positionClass: 'toast-bottom-right' });
+        req.toastr.error('Withdrawal amount exceeds your D balance!', 'Balance Error!', { positionClass: 'toast-bottom-left' });
         //req.flash('errors', { msg: 'Withdrawal amount exceeds your D balance'});
         return res.redirect('/withdraw');
 
@@ -1633,7 +1704,7 @@ exports.withdraw = (req, res, next) => {
 
         client.sendToAddress(`${sendtoaddress}`, parseFloat(`${amount}`), function (error, sendFromtx, resHeaders) {
             if (error) {
-                req.toastr.error('Insufficient Funds or Invalid Amount!', 'Invalid!', { positionClass: 'toast-bottom-right' });
+                req.toastr.error('Insufficient Funds or Invalid Amount!', 'Invalid!', { positionClass: 'toast-bottom-left' });
                 //req.flash('errors', { msg: 'Insufficient Funds or Invalid Amount!' });
                 return res.redirect('/withdraw');
 
@@ -1642,14 +1713,14 @@ exports.withdraw = (req, res, next) => {
                 var sendtx = sendFromtx;
                 var vamount = parseFloat(`${amount}`);
 
-                req.toastr.success(`${vamount} D was sent successfully!`, 'Success!', { positionClass: 'toast-bottom-right' });
+                req.toastr.success(`${vamount} D was sent successfully!`, 'Success!', { positionClass: 'toast-bottom-left' });
                 req.flash('success', { msg: `Your <strong>${vamount} D</strong> was sent successfully! TX ID: <a href="https://coinexplorer.net/D/transaction/${sendtx}" target="_blank">${sendtx}</a>` });
                 return res.redirect('/withdraw');
             }
         });
 
     } else {
-        req.toastr.error('You entered an invalid Denarius (D) Address!', 'Invalid Address!', { positionClass: 'toast-bottom-right' });
+        req.toastr.error('You entered an invalid Denarius (D) Address!', 'Invalid Address!', { positionClass: 'toast-bottom-left' });
         //req.flash('errors', { msg: 'You entered an invalid Denarius (D) Address!' });
         return res.redirect('/withdraw');
     }
@@ -1662,6 +1733,16 @@ exports.transactions = function (req, res) {
 
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
 
@@ -1783,11 +1864,21 @@ exports.startfs = (req, res, next) => {
 
     var alias = req.body.alias;
 
+    //Connect to our D node 
+    //process.env.DUSER
+    const client = new bitcoin.Client({
+      host: decrypt(Storage.get('rpchost')),
+      port: decrypt(Storage.get('rpcport')),
+      user: decrypt(Storage.get('rpcuser')),
+      pass: decrypt(Storage.get('rpcpass')),
+      timeout: 30000
+    });
+
     client.fortunaStake('start-alias', `${alias}`, function (error, result, resHeaders) {
       //if (error) return console.log(error);
 
       if (error) {
-        req.toastr.error(`Something went wrong trying to start the FS ${alias} - ${error}`, 'Error!', { positionClass: 'toast-bottom-right' });
+        req.toastr.error(`Something went wrong trying to start the FS ${alias} - ${error}`, 'Error!', { positionClass: 'toast-bottom-left' });
         return res.redirect('/fs');
       } else {
 
@@ -1799,7 +1890,7 @@ exports.startfs = (req, res, next) => {
         }
 
         req.flash('success', { msg: `Ran start-alias on FS <strong>${alias}</strong> and it ${resultfinal}` });
-        req.toastr.success(`Ran start-alias on FS ${alias} and it ${resultfinal}`, 'Ran start-alias on FS', { positionClass: 'toast-bottom-right' });
+        req.toastr.success(`Ran start-alias on FS ${alias} and it ${resultfinal}`, 'Ran start-alias on FS', { positionClass: 'toast-bottom-left' });
         return res.redirect('/fs');
 
       }
@@ -1814,6 +1905,16 @@ exports.fs = function (req, res) {
 
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
 
@@ -1955,698 +2056,22 @@ exports.fs = function (req, res) {
   });
 };
 
-//GET Get Address Information
-exports.getaddress = function (req, res) {
-  var urladdy = req.params.addr;
-  //console.log('PASSED ADDRESS: ', urladdy);
-
-  const ip = require('ip');
-  const ipaddy = ip.address();
-
-  res.locals.lanip = ipaddy;
-
-  //The used Electrumx Hosts for our Kronos ElectrumX Cluster
-  const delectrumxhost1 = 'electrumx1.denarius.pro';
-  const delectrumxhost2 = 'electrumx2.denarius.pro';
-  const delectrumxhost3 = 'electrumx3.denarius.pro';
-  const delectrumxhost4 = 'electrumx4.denarius.pro';
-
-  //Global Vars
-  var scripthasharray = [];
-  var txhistoryarray = [];
-  var promises = [];
-
-  client.getBalance(function (error, info, resHeaders) {
-    if (error) {
-      var offline = 'offlineoverlay';
-      var offlinebtn = 'offlinebutton';
-      var balance = '0';
-      console.log(error);
-    } else {
-      var offline = 'onlineoverlay';
-      var offlinebtn = 'onlinebutton';
-    }
-
-    var chaindl = 'nooverlay';
-    var chaindlbtn = 'nobtn';
-
-    var balance = info;
-
-    if (balance <= 0) {
-      balance = 0;
-    }
-
-
-
-  client.walletStatus(function (err, ws, resHeaders) {
-    if (err) {
-      console.log(err);
-      var offline = 'offlineoverlay';
-      var offlinebtn = 'offlinebutton';
-      var ws = '';
-      var walletstatuss = 'locked';
-      var sendicon = 'display: none !important';
-    } else {
-      var offline = 'onlineoverlay';
-      var offlinebtn = 'onlinebutton';
-
-      var walletstatuss = ws.wallet_status;
-      var sendicon;
-      
-      if (walletstatuss == 'stakingonly') {
-        sendicon = 'display: none !important';
-      } else if (walletstatuss == 'unlocked') {
-        sendicon = 'display: visible !important;';
-      } else if (walletstatuss == 'unencrypted') {
-        sendicon = 'display: visible !important';
-      } else if (walletstatuss == 'locked') {
-        sendicon = 'display: none !important';
-      }
-    }
-
-  client.getStakingInfo(function (error, stakeinfo, resHeaders) {
-
-        if (error) {
-          var enabled = 'Node Offline';
-          var staking = 'Node Offline';
-          var yourweight = 'Node Offline';
-          var netweight = 'Node Offline';
-          var expected = 'Node Offline';
-          var stakediff = 'Node Offline';
-    
-          var offline = 'offlineoverlay';
-    
-          var offlinebtn = 'offlinebutton';
-    
-          console.log(error);
-    
-        } else {
-          var enabled = stakeinfo.enabled;
-          var staking = stakeinfo.staking;
-          var yourweight = stakeinfo.weight;
-          var netweight = stakeinfo.netstakeweight;
-          var expected = stakeinfo.expectedtime;
-          var stakediff = stakeinfo.difficulty;
-    
-          var offline = 'onlineoverlay';
-          var offlinebtn = 'onlinebutton';
-    
-          var staketoggle;
-          var enabletoggle;
-    
-          if (enabled == true) {
-            enabletoggle = 'Configured';
-          } else {
-            enabletoggle = 'Disabled';
-          }
-    
-          if (staking == true) {
-            staketoggle = 'Staking';
-          } else {
-            staketoggle = 'Not Yet Staking';
-          }
-        }
-
-        client.validateAddress(urladdy, function (error, returnedaddi, resHeaders) {
-          if (error) {
-            var offline = 'offlineoverlay';
-            var offlinebtn = 'offlinebutton';
-            var returnedaddi = 'Offline';
-            console.log(error);
-          } else {
-            var offline = 'onlineoverlay';
-            var offlinebtn = 'onlinebutton';
-          }
-      
-          var chaindl = 'nooverlay';
-          var chaindlbtn = 'nobtn';
-      
-          var validationdata = returnedaddi.ismine;
-
-          if (validationdata == true) {
-            urladdy = returnedaddi.address;              
-            var compressedpubkey = returnedaddi.pubkey;
-          } else {
-            //urladdy = '';
-            var compressedpubkey = 'NOT AVAILABLE';
-          }
-
-
-          //Convert P2PKH Address to Scripthash for ElectrumX Balance Fetching
-          const bytes = bs58.decode(urladdy);
-          const byteshex = bytes.toString('hex');
-          const remove00 = byteshex.substring(2);
-          const removechecksum = remove00.substring(0, remove00.length-8);
-          const HASH160 = "76A914" + removechecksum.toUpperCase() + "88AC";
-          const BUFFHASH160 = Buffer.from(HASH160, "hex");
-          const shaaddress = sha256(BUFFHASH160);
-
-          //Convert P2PK Address to Scripthash for ElectrumX Balance Fetching
-          //Convert Compressed Pub Key
-          const HASH1601p = "21" + compressedpubkey.toUpperCase() + "AC"; // 21 + COMPRESSED PUBKEY + OP_CHECKSIG = P2PK
-          const BUFFHASH1601p = Buffer.from(HASH1601p, "hex");
-          const shaaddress1p = sha256(BUFFHASH1601p);
-
-          const changeEndianness = (string) => {
-                  const result = [];
-                  let len = string.length - 2;
-                  while (len >= 0) {
-                    result.push(string.substr(len, 2));
-                    len -= 2;
-                  }
-                  return result.join('');
-          }
-
-          if (validationdata == true) {
-            var p2pkraw = "21  "+compressedpubkey.toUpperCase()+"  OP_CHECKSIG";
-            var p2pkhraw = "OP_DUP OP_HASH160  "+removechecksum.toUpperCase()+"  OP_EQUALVERIFY OP_CHECKSIG";
-          } else {
-            var p2pkraw = "";       
-            var p2pkhraw = "OP_DUP OP_HASH160  "+removechecksum.toUpperCase()+"  OP_EQUALVERIFY OP_CHECKSIG";
-          }
-
-          const scripthash = changeEndianness(shaaddress);
-
-          var p2pkscripthash = changeEndianness(shaaddress1p);
-
-          const scripthashf = async () => {
-            // Initialize an electrum cluster where 1 out of 2 out of the 4 needs to be consistent, polled randomly with fail-over.
-            const electrum = new ElectrumCluster('Kronos ElectrumX Cluster', '1.4.1', 1, 2, ElectrumCluster.ORDER.RANDOM);
-            
-            // Add some servers to the cluster.
-            electrum.addServer(delectrumxhost1);
-            electrum.addServer(delectrumxhost2);
-            electrum.addServer(delectrumxhost3);
-            electrum.addServer(delectrumxhost4);
-            
-            // Wait for enough connections to be available.
-            await electrum.ready();
-
-            // Request the balance of the requested Scripthash D address
-            const balancescripthash1 = await electrum.request('blockchain.scripthash.get_balance', scripthash);
-
-            const p2pkbalancescripthash1 = await electrum.request('blockchain.scripthash.get_balance', p2pkscripthash);
-
-            // const scripthashhistory = await electrum.request('blockchain.scripthash.get_history', scripthash);
-
-            // const p2pkhistory = await electrum.request('blockchain.scripthash.get_history', p2pkscripthash);
-
-            const balanceformatted1 = balancescripthash1.confirmed;
-
-            const p2pkbalanceformatted1 = p2pkbalancescripthash1.confirmed;
-
-            const balancefinal1 = balanceformatted1 / 100000000;
-
-            const p2pkbalancefinal1 = p2pkbalanceformatted1 / 100000000;
-
-            const addedbalance1 = balancefinal1 + p2pkbalancefinal1;
-
-            //await electrum.disconnect();
-            await electrum.shutdown();
-    
-            return addedbalance1;
-          }
-
-          unirest.get("https://chainz.cryptoid.info/d/api.dws?q=getbalance&a="+urladdy)
-            .headers({'Accept': 'application/json'})
-            .end(function (result) {
-              if (!result.error) {
-
-                res.locals.explorerbalance = result.body;
-                var eebalance = result.body;
-
-              } else { 
-
-                res.locals.explorerbalance = '~';
-                var eebalance = '~';
-
-              }      
-
-          const scripthashtx = async () => {
-            // Initialize an electrum cluster where 1 out of 2 out of the 4 needs to be consistent, polled randomly with fail-over.
-            const electrum = new ElectrumCluster('Kronos ElectrumX Cluster', '1.4.1', 1, 2, ElectrumCluster.ORDER.RANDOM);
-            
-            // Add some servers to the cluster.
-            electrum.addServer(delectrumxhost1);
-            electrum.addServer(delectrumxhost2);
-            electrum.addServer(delectrumxhost3);
-            electrum.addServer(delectrumxhost4);
-            
-            // Wait for enough connections to be available.
-            await electrum.ready();
-
-            const scripthashhistory = await electrum.request('blockchain.scripthash.get_history', scripthash);
-
-            const p2pkhistory = await electrum.request('blockchain.scripthash.get_history', p2pkscripthash);
-
-            const txs = scripthashhistory + p2pkhistory;
-
-            const numTx = scripthashhistory.length + p2pkhistory.length;
-
-            //console.log(numTx);
-
-            res.locals.numTx = numTx;
-
-            txhistoryarray.push({scripthashtxhistory: scripthashhistory, p2pktxhistory: p2pkhistory});
-
-            //console.log(txhistoryarray)            
-
-            //await electrum.disconnect();
-            await electrum.shutdown();
-    
-            return txhistoryarray;
-          }
-
-          const qrcodeasync = async () => {
-            if (urladdy != '') {
-              const qrcoded1 = await QRCode.toDataURL(urladdy, { color: { dark: '#000000FF', light:"#333333FF" } });
-
-              return qrcoded1;
-            } else {
-              const qrcoded1 = '';
-
-              return qrcoded1;
-            }
-          }
-
-          var ebalance = eebalance;
-
-          promises.push(new Promise((res, rej) => {
-            qrcodeasync().then(qrcodedata1 => {
-              scripthashf().then(globalData1 => {
-                scripthashtx().then(txData => {
-
-                  if (validationdata == true) {
-                    globalData1 = globalData1;
-                  } else {
-                    p2pkscripthash = "";
-                    globalData1 = ebalance;
-                  }
-              
-              scripthasharray.push({address: urladdy, qr: qrcodedata1, ismine: validationdata, p2pkhscripthash: scripthash, p2pkhraw: p2pkhraw, p2pkscripthash: p2pkscripthash, p2pkraw: p2pkraw, balance: globalData1, txs: txData});
-              
-              res({urladdy, qrcodedata1, scripthash, globalData1, txData});
-
-            }).catch(function(err) {
-              console.log("Error", err);
-          });
-            });  
-          });
-          }) );
-
-          Promise.all(promises).then((values) => {
-
-          //console.log(scripthasharray);
-        
-
-    res.render('explore/getaddress', { title: 'Address View', scripthasharray: scripthasharray, staketoggle: staketoggle, sendicon: sendicon, balance: balance, offline: offline, offlinebtn: offlinebtn, chaindl: chaindl, chaindlbtn: chaindlbtn });
-    });
-
-  });
-  });
-  });      
-  });
-});    
-  //}); 
-};
-
-//GET Get Transaction Information
-exports.gettx = function (req, res) {
-      var urltx = req.params.tx;
-      //console.log('PASSED TXID: ', urltx);
-
-      const ip = require('ip');
-      const ipaddy = ip.address();
-
-      res.locals.lanip = ipaddy;
-
-      client.getBalance(function (error, info, resHeaders) {
-        if (error) {
-          var offline = 'offlineoverlay';
-          var offlinebtn = 'offlinebutton';
-          var balance = '0';
-          console.log(error);
-        } else {
-          var offline = 'onlineoverlay';
-          var offlinebtn = 'onlinebutton';
-        }
-    
-        var chaindl = 'nooverlay';
-        var chaindlbtn = 'nobtn';
-    
-        var balance = info;
-    
-        if (balance <= 0) {
-          balance = 0;
-        }
-    
-      client.getTransaction(`${urltx}`, function (err, txinfo, resHeaders) {
-        if (err) {
-          console.log(err);
-          var offline = 'offlineoverlay';
-          var offlinebtn = 'offlinebutton';
-          var txinfo = '';
-          var blockhash = '';
-        } else {
-          var offline = 'onlineoverlay';
-          var offlinebtn = 'onlinebutton';
-          
-          blockhash = txinfo.blockhash;
-
-        }
-
-        //var blockhash = txinfo.blockhash;
-
-        client.getBlock(`${blockhash}`, function (err, blockinfo, resHeaders) {
-          if (err) {
-            console.log(err);
-            var offline = 'offlineoverlay';
-            var offlinebtn = 'offlinebutton';
-            var blockinfo = '';
-          } else {
-            var offline = 'onlineoverlay';
-            var offlinebtn = 'onlinebutton';        
-          }  
-
-    
-      client.walletStatus(function (err, ws, resHeaders) {
-        if (err) {
-          console.log(err);
-          var offline = 'offlineoverlay';
-          var offlinebtn = 'offlinebutton';
-          var ws = '';
-          var walletstatuss = 'locked';
-          var sendicon = 'display: none !important';
-        } else {
-          var offline = 'onlineoverlay';
-          var offlinebtn = 'onlinebutton';
-    
-          var walletstatuss = ws.wallet_status;
-          var sendicon;
-          
-          if (walletstatuss == 'stakingonly') {
-            sendicon = 'display: none !important';
-          } else if (walletstatuss == 'unlocked') {
-            sendicon = 'display: visible !important;';
-          } else if (walletstatuss == 'unencrypted') {
-            sendicon = 'display: visible !important';
-          } else if (walletstatuss == 'locked') {
-            sendicon = 'display: none !important';
-          }
-        }
-    
-      client.getStakingInfo(function (error, stakeinfo, resHeaders) {
-    
-            if (error) {
-              var enabled = 'Node Offline';
-              var staking = 'Node Offline';
-              var yourweight = 'Node Offline';
-              var netweight = 'Node Offline';
-              var expected = 'Node Offline';
-              var stakediff = 'Node Offline';
-        
-              var offline = 'offlineoverlay';
-        
-              var offlinebtn = 'offlinebutton';
-        
-              console.log(error);
-        
-            } else {
-              var enabled = stakeinfo.enabled;
-              var staking = stakeinfo.staking;
-              var yourweight = stakeinfo.weight;
-              var netweight = stakeinfo.netstakeweight;
-              var expected = stakeinfo.expectedtime;
-              var stakediff = stakeinfo.difficulty;
-        
-              var offline = 'onlineoverlay';
-              var offlinebtn = 'onlinebutton';
-        
-              var staketoggle;
-              var enabletoggle;
-        
-              if (enabled == true) {
-                enabletoggle = 'Configured';
-              } else {
-                enabletoggle = 'Disabled';
-              }
-        
-              if (staking == true) {
-                staketoggle = 'Staking';
-              } else {
-                staketoggle = 'Not Yet Staking';
-              }
-            }
-    
-        res.render('explore/gettx', { title: 'Transaction View', txinfo: txinfo, blockinfo: blockinfo, staketoggle: staketoggle, sendicon: sendicon, balance: balance, offline: offline, offlinebtn: offlinebtn, chaindl: chaindl, chaindlbtn: chaindlbtn });
-        });
-    
-      });
-      });
-      }); 
-    });
-};
-
-//GET Get Block Information
-exports.getblock = function (req, res) {
-
-  const ip = require('ip');
-  const ipaddy = ip.address();
-
-  res.locals.lanip = ipaddy;
-
-  if (isNaN(req.params.block) != true) {
-    var blocknumber = req.params.block;
-
-    //console.log('GOT BLOCK #: ', blocknumber);
-
-  client.getBalance(function (error, info, resHeaders) {
-    if (error) {
-      var offline = 'offlineoverlay';
-      var offlinebtn = 'offlinebutton';
-      var balance = '0';
-      console.log(error);
-    } else {
-      var offline = 'onlineoverlay';
-      var offlinebtn = 'onlinebutton';
-    }
-
-    var chaindl = 'nooverlay';
-    var chaindlbtn = 'nobtn';
-
-    var balance = info;
-
-    if (balance <= 0) {
-      balance = 0;
-    }
-
-    client.getBlockByNumber(parseInt(blocknumber), function (err, blockinfo, resHeaders) {
-      if (err) {
-        console.log(err);
-        var offline = 'offlineoverlay';
-        var offlinebtn = 'offlinebutton';
-        var blockinfo = '';
-      } else {
-        var offline = 'onlineoverlay';
-        var offlinebtn = 'onlinebutton';        
-      } 
-
-  client.walletStatus(function (err, ws, resHeaders) {
-    if (err) {
-      console.log(err);
-      var offline = 'offlineoverlay';
-      var offlinebtn = 'offlinebutton';
-      var ws = '';
-      var walletstatuss = 'locked';
-      var sendicon = 'display: none !important';
-    } else {
-      var offline = 'onlineoverlay';
-      var offlinebtn = 'onlinebutton';
-
-      var walletstatuss = ws.wallet_status;
-      var sendicon;
-      
-      if (walletstatuss == 'stakingonly') {
-        sendicon = 'display: none !important';
-      } else if (walletstatuss == 'unlocked') {
-        sendicon = 'display: visible !important;';
-      } else if (walletstatuss == 'unencrypted') {
-        sendicon = 'display: visible !important';
-      } else if (walletstatuss == 'locked') {
-        sendicon = 'display: none !important';
-      }
-    }
-
-  client.getStakingInfo(function (error, stakeinfo, resHeaders) {
-
-        if (error) {
-          var enabled = 'Node Offline';
-          var staking = 'Node Offline';
-          var yourweight = 'Node Offline';
-          var netweight = 'Node Offline';
-          var expected = 'Node Offline';
-          var stakediff = 'Node Offline';
-    
-          var offline = 'offlineoverlay';
-    
-          var offlinebtn = 'offlinebutton';
-    
-          console.log(error);
-    
-        } else {
-          var enabled = stakeinfo.enabled;
-          var staking = stakeinfo.staking;
-          var yourweight = stakeinfo.weight;
-          var netweight = stakeinfo.netstakeweight;
-          var expected = stakeinfo.expectedtime;
-          var stakediff = stakeinfo.difficulty;
-    
-          var offline = 'onlineoverlay';
-          var offlinebtn = 'onlinebutton';
-    
-          var staketoggle;
-          var enabletoggle;
-    
-          if (enabled == true) {
-            enabletoggle = 'Configured';
-          } else {
-            enabletoggle = 'Disabled';
-          }
-    
-          if (staking == true) {
-            staketoggle = 'Staking';
-          } else {
-            staketoggle = 'Not Yet Staking';
-          }
-        }
-
-    res.render('explore/block', { title: 'Block View', blockinfo: blockinfo, staketoggle: staketoggle, sendicon: sendicon, balance: balance, offline: offline, offlinebtn: offlinebtn, chaindl: chaindl, chaindlbtn: chaindlbtn });
-    });
-
-  });
-  });
-  });
-    
-  } else {
-    var blockhash = req.params.block;
-    //console.log('GOT BLOCK: ', blockhash);
-
-    client.getBalance(function (error, info, resHeaders) {
-      if (error) {
-        var offline = 'offlineoverlay';
-        var offlinebtn = 'offlinebutton';
-        var balance = '0';
-        console.log(error);
-      } else {
-        var offline = 'onlineoverlay';
-        var offlinebtn = 'onlinebutton';
-      }
-  
-      var chaindl = 'nooverlay';
-      var chaindlbtn = 'nobtn';
-  
-      var balance = info;
-  
-      if (balance <= 0) {
-        balance = 0;
-      }
-  
-      client.getBlock(`${blockhash}`, function (err, blockinfo, resHeaders) {
-        if (err) {
-          console.log(err);
-          var offline = 'offlineoverlay';
-          var offlinebtn = 'offlinebutton';
-          var blockinfo = '';
-        } else {
-          var offline = 'onlineoverlay';
-          var offlinebtn = 'onlinebutton';        
-        }  
-  
-  
-    client.walletStatus(function (err, ws, resHeaders) {
-      if (err) {
-        console.log(err);
-        var offline = 'offlineoverlay';
-        var offlinebtn = 'offlinebutton';
-        var ws = '';
-        var walletstatuss = 'locked';
-        var sendicon = 'display: none !important';
-      } else {
-        var offline = 'onlineoverlay';
-        var offlinebtn = 'onlinebutton';
-  
-        var walletstatuss = ws.wallet_status;
-        var sendicon;
-        
-        if (walletstatuss == 'stakingonly') {
-          sendicon = 'display: none !important';
-        } else if (walletstatuss == 'unlocked') {
-          sendicon = 'display: visible !important;';
-        } else if (walletstatuss == 'unencrypted') {
-          sendicon = 'display: visible !important';
-        } else if (walletstatuss == 'locked') {
-          sendicon = 'display: none !important';
-        }
-      }
-  
-    client.getStakingInfo(function (error, stakeinfo, resHeaders) {
-  
-          if (error) {
-            var enabled = 'Node Offline';
-            var staking = 'Node Offline';
-            var yourweight = 'Node Offline';
-            var netweight = 'Node Offline';
-            var expected = 'Node Offline';
-            var stakediff = 'Node Offline';
-      
-            var offline = 'offlineoverlay';
-      
-            var offlinebtn = 'offlinebutton';
-      
-            console.log(error);
-      
-          } else {
-            var enabled = stakeinfo.enabled;
-            var staking = stakeinfo.staking;
-            var yourweight = stakeinfo.weight;
-            var netweight = stakeinfo.netstakeweight;
-            var expected = stakeinfo.expectedtime;
-            var stakediff = stakeinfo.difficulty;
-      
-            var offline = 'onlineoverlay';
-            var offlinebtn = 'onlinebutton';
-      
-            var staketoggle;
-            var enabletoggle;
-      
-            if (enabled == true) {
-              enabletoggle = 'Configured';
-            } else {
-              enabletoggle = 'Disabled';
-            }
-      
-            if (staking == true) {
-              staketoggle = 'Staking';
-            } else {
-              staketoggle = 'Not Yet Staking';
-            }
-          }
-  
-      res.render('explore/block', { title: 'Block View', blockinfo: blockinfo, staketoggle: staketoggle, sendicon: sendicon, balance: balance, offline: offline, offlinebtn: offlinebtn, chaindl: chaindl, chaindlbtn: chaindlbtn });
-      });
-  
-    });
-    });
-    });
-  }
-};
-
 //GET for Peers Page
 exports.peers = function (req, res) {
   //var username = req.user.email;
 
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
 
@@ -2780,6 +2205,16 @@ exports.peers = function (req, res) {
 exports.sendRaw = (req, res, next) => {
   var rawtx = req.body.rawtx;
 
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
+
   client.getBalance(function (error, info, resHeaders) {
       if (error) {
         console.log(error);
@@ -2789,7 +2224,7 @@ exports.sendRaw = (req, res, next) => {
 
       client.sendRawTransaction(`${rawtx}`, function (error, tx, resHeaders) {
           if (error) {
-              req.toastr.error('Insufficient Funds, Invalid Amount, or Transaction already exists!', 'Invalid!', { positionClass: 'toast-bottom-right' });
+              req.toastr.error('Insufficient Funds, Invalid Amount, or Transaction already exists!', 'Invalid!', { positionClass: 'toast-bottom-left' });
               //req.flash('errors', { msg: 'Insufficient Funds or Invalid Amount!' });
               return res.redirect('/rawtx');
 
@@ -2797,7 +2232,7 @@ exports.sendRaw = (req, res, next) => {
 
               var sendtx = tx;
 
-              req.toastr.success(`Raw Transaction was sent successfully!`, 'Success!', { positionClass: 'toast-bottom-right' });
+              req.toastr.success(`Raw Transaction was sent successfully!`, 'Success!', { positionClass: 'toast-bottom-left' });
               req.flash('success', { msg: `Your raw transaction was sent successfully! TX ID: <a href="https://coinexplorer.net/D/transaction/${sendtx}" target="_blank">${sendtx}</a>` });
               return res.redirect('/rawtx');
           }
@@ -2812,6 +2247,16 @@ exports.sendRaw = (req, res, next) => {
 exports.importPriv = (req, res, next) => {
   var privkey = req.body.privkey;
 
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
+
   client.getBalance(function (error, info, resHeaders) {
       if (error) {
         console.log(error);
@@ -2821,13 +2266,13 @@ exports.importPriv = (req, res, next) => {
 
       client.importPrivKey(`${privkey}`, 'imported', false, function (error, success, resHeaders) {
           if (error) {
-              req.toastr.error('Invalid Private Key or Wrong Format!', 'Invalid!', { positionClass: 'toast-bottom-right' });
+              req.toastr.error('Invalid Private Key or Wrong Format!', 'Invalid!', { positionClass: 'toast-bottom-left' });
               //req.flash('errors', { msg: 'Insufficient Funds or Invalid Amount!' });
               return res.redirect('/import');
 
           } else {
 
-              req.toastr.success(`Imported private key successfully!`, 'Success!', { positionClass: 'toast-bottom-right' });
+              req.toastr.success(`Imported private key successfully!`, 'Success!', { positionClass: 'toast-bottom-left' });
               return res.redirect('/import');
           }
       });
@@ -2843,6 +2288,16 @@ exports.signMsg = (req, res, next) => {
   var sendtoaddress = req.body.sendaddress;
   var msg = req.body.unsignedmsg;
 
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
+
   client.getBalance(function (error, info, resHeaders) {
       if (error) {
         console.log(error);
@@ -2856,7 +2311,7 @@ exports.signMsg = (req, res, next) => {
 
       client.signMessage(`${sendtoaddress}`, `${msg}`, function (error, signedmsghex, resHeaders) {
           if (error) {
-              req.toastr.error('You dont own this address or an error occured!', 'Error!', { positionClass: 'toast-bottom-right' });
+              req.toastr.error('You dont own this address or an error occured!', 'Error!', { positionClass: 'toast-bottom-left' });
               //req.flash('errors', { msg: 'Insufficient Funds or Invalid Amount!' });
               return res.redirect('/sign');
 
@@ -2864,14 +2319,14 @@ exports.signMsg = (req, res, next) => {
 
               var signed = signedmsghex;
 
-              req.toastr.success(`Signed message successfully`, 'Success!', { positionClass: 'toast-bottom-right' });
+              req.toastr.success(`Signed message successfully`, 'Success!', { positionClass: 'toast-bottom-left' });
               req.flash('success', { msg: `Your signed message <strong>${msg}</strong> is: <strong>${signed}</strong> signed with the address: <strong>${sendtoaddress}</strong>` });
               return res.redirect('/sign');
           }
       });
 
   } else {
-      req.toastr.error('You entered an invalid Denarius (D) Address!', 'Invalid Address!', { positionClass: 'toast-bottom-right' });
+      req.toastr.error('You entered an invalid Denarius (D) Address!', 'Invalid Address!', { positionClass: 'toast-bottom-left' });
       //req.flash('errors', { msg: 'You entered an invalid Denarius (D) Address!' });
       return res.redirect('/sign');
   }
@@ -2890,6 +2345,16 @@ exports.verifyMsg = (req, res, next) => {
   var msg = req.body.unsignedmsg;
   var signature = req.body.signature;
 
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
+
   client.getBalance(function (error, info, resHeaders) {
       if (error) {
         console.log(error);
@@ -2903,7 +2368,7 @@ exports.verifyMsg = (req, res, next) => {
 
       client.verifyMessage(`${sendtoaddress}`, `${signature}`, `${msg}`, function (error, signedmsghex, resHeaders) {
           if (error) {
-              req.toastr.error('You dont own this address or an error occured!', 'Error!', { positionClass: 'toast-bottom-right' });
+              req.toastr.error('You dont own this address or an error occured!', 'Error!', { positionClass: 'toast-bottom-left' });
               //req.flash('errors', { msg: 'Insufficient Funds or Invalid Amount!' });
               return res.redirect('/verify');
 
@@ -2913,19 +2378,19 @@ exports.verifyMsg = (req, res, next) => {
 
               if (signed == true) {
 
-                req.toastr.success(`Message is valid!`, 'Success!', { positionClass: 'toast-bottom-right' });
+                req.toastr.success(`Message is valid!`, 'Success!', { positionClass: 'toast-bottom-left' });
                 req.flash('success', { msg: `Your message <strong>${msg}</strong> with signature: <strong>${signature}</strong> and the address: <strong>${sendtoaddress}</strong> is valid!` });
                 return res.redirect('/verify');
 
               } else if (signed == false) {
-                req.toastr.error('Message unable to be validated!', 'Message not verified!', { positionClass: 'toast-bottom-right' });
+                req.toastr.error('Message unable to be validated!', 'Message not verified!', { positionClass: 'toast-bottom-left' });
                 return res.redirect('/verify');
               }
           }
       });
 
   } else {
-      req.toastr.error('You entered an invalid Denarius (D) Address!', 'Invalid Address!', { positionClass: 'toast-bottom-right' });
+      req.toastr.error('You entered an invalid Denarius (D) Address!', 'Invalid Address!', { positionClass: 'toast-bottom-left' });
       //req.flash('errors', { msg: 'You entered an invalid Denarius (D) Address!' });
       return res.redirect('/verify');
   }
@@ -2934,42 +2399,21 @@ exports.verifyMsg = (req, res, next) => {
 };
 
 /**
- * POST /search
- * Search Denarius Blockchain
- */
-exports.search = (req, res, next) => {
-  var searchreq = req.body.explorersearch;
-
-  console.log('Search Request', searchreq)
-
-  var regexpTx = new RegExp('[0-9a-zA-Z]{64}?');
-  var regexpAddr = new RegExp('^(D)?[0-9a-zA-Z]{34}$'); //D Regular Expression for Addresses
-  var scripthashregex = new RegExp('^(d)?[0-9a-zA-Z]{34}$'); // d Scripthash Addresses
-  var regexpBlockNum = new RegExp('[0-9]{1,7}?'); // Blocks have same hash regex as TX...hmmm
-  var regexpBlock = new RegExp('^[0][0-9a-zA-Z]{64}?'); // Blocks have same hash regex as TX...hmmm
-
-  if (regexpAddr.test(searchreq) || scripthashregex.test(searchreq)) {
-    //console.log("State of Address Test ", regexpAddr.test(searchreq))
-    return res.redirect('/address/'+searchreq);
-  } else if (regexpTx.test(searchreq)) {
-    //console.log("State of TX Test ", regexpTx.test(searchreq))
-    return res.redirect('/tx/'+searchreq);
-  } else if (regexpBlockNum.test(searchreq)) {
-    //console.log("State of Block Test ", regexpBlockNum.test(searchreq))
-    return res.redirect('/block/'+searchreq);
-  } else {
-    req.toastr.error('Invalid Block #, Address, or Transaction Hash', 'Error!', { positionClass: 'toast-bottom-right' });
-    return res.redirect('/')
-  }
-
-};
-
-/**
  * POST /backupwallet
  * Backup Denarius Wallet
  */
 exports.backupWallet = (req, res, next) => {
   var location = req.body.backuploc;
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   client.getBalance(function (error, info, resHeaders) {
       if (error) {
@@ -2980,109 +2424,109 @@ exports.backupWallet = (req, res, next) => {
 
       client.backupWallet(`${location}`, function (error, success, resHeaders) {
           if (error) {
-              req.toastr.error('Invalid Location or Permission issue!', 'Error!', { positionClass: 'toast-bottom-right' });
+              req.toastr.error('Invalid Location or Permission issue!', 'Error!', { positionClass: 'toast-bottom-left' });
               //req.flash('errors', { msg: 'Insufficient Funds or Invalid Amount!' });
               return res.redirect('/backup');
 
           } else {
               req.flash('success', { msg: `Your wallet was backed up successfully to <strong>${location}</strong>` });
-              req.toastr.success(`Backup completed successfully!`, 'Success!', { positionClass: 'toast-bottom-right' });
+              req.toastr.success(`Backup completed successfully!`, 'Success!', { positionClass: 'toast-bottom-left' });
               return res.redirect('/backup');
           }
       });
 })
 };
 
-exports.getseed = (req, res, next) => {
-var mnemonic;
-let seedaddresses = [];
+// exports.getseed = (req, res, next) => {
+// var mnemonic;
+// let seedaddresses = [];
 
-// Fetch the Kronos LevelDB
-db.get('seedphrase', function (err, value) {
-	if (err) {
+// // Fetch the Kronos LevelDB
+// db.get('seedphrase', function (err, value) {
+// 	if (err) {
 		
-		// If seedphrase does not exist in levelDB then generate one
-		mnemonic = bip39.generateMnemonic();
-		console.log("~Generated Denarius Mnemonic~ ", mnemonic);
+// 		// If seedphrase does not exist in levelDB then generate one
+// 		mnemonic = bip39.generateMnemonic();
+// 		console.log("~Generated Denarius Mnemonic~ ", mnemonic);
 
-		// Encrypt the seedphrase for storing in the DB
-		var encryptedmnemonic = encrypt(mnemonic);
-		console.log("Encrypted Mnemonic", encryptedmnemonic);
+// 		// Encrypt the seedphrase for storing in the DB
+// 		var encryptedmnemonic = encrypt(mnemonic);
+// 		console.log("Encrypted Mnemonic", encryptedmnemonic);
 
-		// Put the encrypted seedphrase in the DB
-		db.put('seedphrase', encryptedmnemonic, function (err) {
-			if (err) return console.log('Ooops!', err) // some kind of I/O error if so
-			//console.log('Inserted Encrypted Seed Phrase to DB');
-		});
+// 		// Put the encrypted seedphrase in the DB
+// 		db.put('seedphrase', encryptedmnemonic, function (err) {
+// 			if (err) return console.log('Ooops!', err) // some kind of I/O error if so
+// 			//console.log('Inserted Encrypted Seed Phrase to DB');
+// 		});
 
-		//return mnemonic;
+// 		//return mnemonic;
 
-	} else {
+// 	} else {
 
-		var decryptedmnemonic = decrypt(value);
-		console.log("Decrypted Mnemonic", decryptedmnemonic);
+// 		var decryptedmnemonic = decrypt(value);
+// 		console.log("Decrypted Mnemonic", decryptedmnemonic);
 
-		mnemonic = decryptedmnemonic;
+// 		mnemonic = decryptedmnemonic;
 
-		//return mnemonic;
+// 		//return mnemonic;
 
-	}
+// 	}
 
 
-	console.log("Stored Denarius Mnemonic: ", mnemonic);
+// 	console.log("Stored Denarius Mnemonic: ", mnemonic);
 
-	//Convert our mnemonic seed phrase to BIP39 Seed Buffer 
-	const seed = bip39.mnemonicToSeedSync(mnemonic);
-	console.log("BIP39 Seed Phrase to Hex", seed.toString('hex'));
+// 	//Convert our mnemonic seed phrase to BIP39 Seed Buffer 
+// 	const seed = bip39.mnemonicToSeedSync(mnemonic);
+// 	console.log("BIP39 Seed Phrase to Hex", seed.toString('hex'));
 	
-	// BIP32 From BIP39 Seed
-	const root = bip32.fromSeed(seed);
+// 	// BIP32 From BIP39 Seed
+// 	const root = bip32.fromSeed(seed);
 
-	// Denarius Network Params Object
-	const network = {
-			messagePrefix: '\x19Denarius Signed Message:\n',
-			bech32: 'd',
-			bip32: {
-				public: 0x0488b21e,
-				private: 0x0488ade4
-			},
-			pubKeyHash: 0x1e,
-			scriptHash: 0x5a,
-			wif: 0x9e
-	};
+// 	// Denarius Network Params Object
+// 	const network = {
+// 			messagePrefix: '\x19Denarius Signed Message:\n',
+// 			bech32: 'd',
+// 			bip32: {
+// 				public: 0x0488b21e,
+// 				private: 0x0488ade4
+// 			},
+// 			pubKeyHash: 0x1e,
+// 			scriptHash: 0x5a,
+// 			wif: 0x9e
+// 	};
 
-	// A for loop for how many addresses we want from the derivation path of the seed phrase
-	//
-	for (let i = 0; i < 10; i++) {
+// 	// A for loop for how many addresses we want from the derivation path of the seed phrase
+// 	//
+// 	for (let i = 0; i < 10; i++) {
 
-		//Get 10 Addresses from the derived mnemonic
-		const addressPath = `m/44'/116'/0'/0/${i}`;
+// 		//Get 10 Addresses from the derived mnemonic
+// 		const addressPath = `m/44'/116'/0'/0/${i}`;
 
-		// Get the keypair from the address derivation path
-		const addressKeypair = root.derivePath(addressPath);
+// 		// Get the keypair from the address derivation path
+// 		const addressKeypair = root.derivePath(addressPath);
 
-		// Get the p2pkh base58 public address of the keypair
-		const p2pkhaddy = denarius.payments.p2pkh({ pubkey: addressKeypair.publicKey, network }).address;
+// 		// Get the p2pkh base58 public address of the keypair
+// 		const p2pkhaddy = denarius.payments.p2pkh({ pubkey: addressKeypair.publicKey, network }).address;
 
-		const privatekey = addressKeypair.toWIF();
+// 		const privatekey = addressKeypair.toWIF();
 	
-		//New Array called seedaddresses that is filled with address and path data currently, WIP and TODO
-		seedaddresses.push({ address: p2pkhaddy, privkey: privatekey, path: addressPath });
-	}
+// 		//New Array called seedaddresses that is filled with address and path data currently, WIP and TODO
+// 		seedaddresses.push({ address: p2pkhaddy, privkey: privatekey, path: addressPath });
+// 	}
 
-	// Console Log the full array - want to eventually push these into scripthash hashing and retrieve balances and then send from them
-	console.log("Seed Address Array", seedaddresses);
+// 	// Console Log the full array - want to eventually push these into scripthash hashing and retrieve balances and then send from them
+// 	console.log("Seed Address Array", seedaddresses);
 
-	//Emit to our Socket.io Server
-	// io.on('connection', function (socket) {
-	// 	socket.emit("seed", {seedaddresses: seedaddresses});
-	// 	// setInterval(() => {
-	// 	// 	socket.emit("seed", {seedaddresses: seedaddresses});
-	// 	// }, 60000);		
-	// });
+// 	//Emit to our Socket.io Server
+// 	// io.on('connection', function (socket) {
+// 	// 	socket.emit("seed", {seedaddresses: seedaddresses});
+// 	// 	// setInterval(() => {
+// 	// 	// 	socket.emit("seed", {seedaddresses: seedaddresses});
+// 	// 	// }, 60000);		
+// 	// });
 
-});
-};
+// });
+// };
 
 exports.getSeed = (req, res) => {
   const ip = require('ip');
@@ -3092,171 +2536,77 @@ exports.getSeed = (req, res) => {
 
   req.session.loggedin2 = false;
 
-  client.walletStatus(function (err, ws, resHeaders) {
+  var totalbal = Storage.get('totalbal');
+
+  var mnemonic;
+  var ps;
+  let seedaddresses = [];
+  let store = [];
+
+  db.get('password', function(err, value) {
     if (err) {
-      console.log(err);
-      var offline = 'offlineoverlay';
-      var offlinebtn = 'offlinebutton';
-      var ws = '';
-      var walletstatuss = 'locked';
-      var sendicon = 'display: none !important';
+
     } else {
-      var offline = 'onlineoverlay';
-      var offlinebtn = 'onlinebutton';
-
-      var walletstatuss = ws.wallet_status;
-      var sendicon;
-      
-      if (walletstatuss == 'stakingonly') {
-				sendicon = 'display: none !important';
-			} else if (walletstatuss == 'unlocked') {
-				sendicon = 'display: visible !important;';
-			} else if (walletstatuss == 'unencrypted') {
-				sendicon = 'display: visible !important';
-			} else if (walletstatuss == 'locked') {
-				sendicon = 'display: none !important';
-			}
+      var decryptedpass = decrypt(value);
+      ps = decryptedpass;
     }
-  client.getStakingInfo(function (error, stakeinfo, resHeaders) {
 
-      if (error) {
-        var enabled = 'Node Offline';
-        var staking = 'Node Offline';
-        var yourweight = 'Node Offline';
-        var netweight = 'Node Offline';
-        var expected = 'Node Offline';
-        var stakediff = 'Node Offline';
-  
-        var offline = 'offlineoverlay';
-  
-        var offlinebtn = 'offlinebutton';
-  
-        console.log(error);
-  
+    // Fetch the Kronos LevelDB
+    db.get('seedphrase', function (err, value) {
+      if (err) {
+
       } else {
-        var enabled = stakeinfo.enabled;
-        var staking = stakeinfo.staking;
-        var yourweight = stakeinfo.weight;
-        var netweight = stakeinfo.netstakeweight;
-        var expected = stakeinfo.expectedtime;
-        var stakediff = stakeinfo.difficulty;
-  
-        var offline = 'onlineoverlay';
-        var offlinebtn = 'onlinebutton';
-  
-        var staketoggle;
-        var enabletoggle;
-  
-        if (enabled == true) {
-          enabletoggle = 'Configured';
-        } else {
-          enabletoggle = 'Disabled';
-        }
-  
-        if (staking == true) {
-          staketoggle = 'Staking';
-        } else {
-          staketoggle = 'Not Yet Staking';
-        }
-      }
-  client.getBalance(function (error, info, resHeaders) {
-      if (error) {
-        var offline = 'offlineoverlay';
-        var offlinebtn = 'offlinebutton';
-        var balance = '0';
-        console.log(error);
-      } else {
-        var offline = 'onlineoverlay';
-				var offlinebtn = 'onlinebutton';
+        var decryptedmnemonic = decrypt(value);
+        mnemonic = decryptedmnemonic;
       }
 
-      var chaindl = 'nooverlay';
-      var chaindlbtn = 'nobtn';
+      //Convert our mnemonic seed phrase to BIP39 Seed Buffer 
+      const seed = bip39.mnemonicToSeedSync(mnemonic);
+      
+      // BIP32 From BIP39 Seed
+      const root = bip32.fromSeed(seed);
 
-      var balance = info;
+      // Denarius Network Params Object
+      const network = {
+          messagePrefix: '\x19Denarius Signed Message:\n',
+          bech32: 'd',
+          bip32: {
+            public: 0x0488b21e,
+            private: 0x0488ade4
+          },
+          pubKeyHash: 0x1e,
+          scriptHash: 0x5a,
+          wif: 0x9e
+      };
 
-      if (balance <= 0) {
-        balance = 0;
+      // A for loop for how many addresses we want from the derivation path of the seed phrase
+      for (let i = 0; i < 21; i++) { //20
+
+        //Get 10 Addresses from the derived mnemonic
+        const addressPath = `m/44'/116'/0'/0/${i}`;
+
+        // Get the keypair from the address derivation path
+        const addressKeypair = root.derivePath(addressPath);
+
+        // Get the p2pkh base58 public address of the keypair
+        const p2pkhaddy = denarius.payments.p2pkh({ pubkey: addressKeypair.publicKey, network }).address;
+
+        const privatekey = addressKeypair.toWIF();
+      
+        //New Array called seedaddresses that is filled with address and path data currently, WIP and TODO
+        seedaddresses.push({ address: p2pkhaddy, privkey: privatekey, path: addressPath });
       }
 
-      var mnemonic;
-      var ps;
-      let seedaddresses = [];
-      let store = [];
+      store.push({mnemonic: mnemonic, seedaddresses: seedaddresses});
 
-      db.get('password', function(err, value) {
-        if (err) {
-
-        } else {
-          var decryptedpass = decrypt(value);
-          ps = decryptedpass;
-        }
-
-        // Fetch the Kronos LevelDB
-        db.get('seedphrase', function (err, value) {
-          if (err) {
-
-          } else {
-            var decryptedmnemonic = decrypt(value);
-            mnemonic = decryptedmnemonic;
-          }
-
-          //Convert our mnemonic seed phrase to BIP39 Seed Buffer 
-          const seed = bip39.mnemonicToSeedSync(mnemonic, ps);
-          
-          // BIP32 From BIP39 Seed
-          const root = bip32.fromSeed(seed);
-
-          // Denarius Network Params Object
-          const network = {
-              messagePrefix: '\x19Denarius Signed Message:\n',
-              bech32: 'd',
-              bip32: {
-                public: 0x0488b21e,
-                private: 0x0488ade4
-              },
-              pubKeyHash: 0x1e,
-              scriptHash: 0x5a,
-              wif: 0x9e
-          };
-
-          // A for loop for how many addresses we want from the derivation path of the seed phrase
-          for (let i = 0; i < 21; i++) { //20
-
-            //Get 10 Addresses from the derived mnemonic
-            const addressPath = `m/44'/116'/0'/0/${i}`;
-
-            // Get the keypair from the address derivation path
-            const addressKeypair = root.derivePath(addressPath);
-
-            // Get the p2pkh base58 public address of the keypair
-            const p2pkhaddy = denarius.payments.p2pkh({ pubkey: addressKeypair.publicKey, network }).address;
-
-            const privatekey = addressKeypair.toWIF();
-          
-            //New Array called seedaddresses that is filled with address and path data currently, WIP and TODO
-            seedaddresses.push({ address: p2pkhaddy, privkey: privatekey, path: addressPath });
-          }
-
-          store.push({mnemonic: mnemonic, seedaddresses: seedaddresses});
-
-          res.locals.seedphrase = store;
+      res.locals.seedphrase = store;
   
     res.render('account/getseed', {
         title: 'Denarius Seed Phrase',
-        balance: balance,
-        seedphrase: store,
-        offline: offline,
-        sendicon: sendicon,
-        offlinebtn: offlinebtn,
-        staketoggle: staketoggle,
-        chaindl: chaindl,
-        chaindlbtn: chaindlbtn
+        totalbal: totalbal,
+        seedphrase: store
     });
   });
-});
-});
-});
 });
 };
 
@@ -3268,6 +2618,16 @@ exports.genMini = function (req, res) {
   const ipaddy = ip.address();
 
   res.locals.lanip = ipaddy;
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   client.getBalance(function (error, info, resHeaders) {
     if (error) {
@@ -3373,6 +2733,16 @@ exports.convertMini = function (req, res) {
   const ipaddy = ip.address();
 
   res.locals.lanip = ipaddy;
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   client.getBalance(function (error, info, resHeaders) {
     if (error) {
@@ -3480,6 +2850,16 @@ exports.xpub = (req, res) => {
   const ipaddy = ip.address();
 
   res.locals.lanip = ipaddy;
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   const scripthasharray = [];
   const transactionhistoryarray = [];
@@ -3804,6 +3184,16 @@ exports.keepkey = function (req, res) {
 
   const ip = require('ip');
   const ipaddy = ip.address();
+
+  //Connect to our D node 
+  //process.env.DUSER
+  const client = new bitcoin.Client({
+    host: decrypt(Storage.get('rpchost')),
+    port: decrypt(Storage.get('rpcport')),
+    user: decrypt(Storage.get('rpcuser')),
+    pass: decrypt(Storage.get('rpcpass')),
+    timeout: 30000
+  });
 
   res.locals.lanip = ipaddy;
 

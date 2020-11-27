@@ -1,72 +1,243 @@
 {
   "name": "Kronos",
-  "version": "1.3.3",
-  "description": "A Dashboard styled wallet for denariusd in NodeJS for Raspberry Pis & other Linux distros",
+  "version": "1.8.2-Beta",
+  "description": "A Dashboard Interface and Wallet for Denarius (D), Ethereum (ETH), and Denarii (ARI) built with NodeJS and Electron",
   "repository": {
     "type": "git",
     "url": "https://github.com/carsenk/kronos.git"
   },
   "author": "Carsen Klock",
   "license": "MIT",
+  "main": "src/main.js",
   "scripts": {
-    "start": "node -r esm ./bin/kronos",
-    "test": "mocha --reporter spec"
+    "startmuon": "node setup.js",
+    "postinstall": "electron-builder install-app-deps && cd node_modules/node-pty-prebuilt-multiarch && node-gyp rebuild",
+    "kronos": "electron .",
+    "headless": "node -r esm ./bin/kronos",
+    "buildwin": "electron-builder build --win --publish never",
+    "deploywin": "electron-builder build --win --publish always",
+    "buildmac": "electron-builder build --mac --publish never",
+    "postbuildmac": "cp -Rf node_modules/node-pty-prebuilt-multiarch/. dist/mac/Kronos.app/Contents/Resources/app/node_modules/node-pty-prebuilt-multiarch",
+    "deploymac": "electron-builder build --mac --publish always",
+    "test": "mocha --reporter spec",
+    "package": "electron-forge package",
+    "build": "electron-forge make",
+    "re-build": "electron-rebuild",
+    "download.metamask.dev": "cd extensions && ced nkbihfbeogaeaoehlefnkodbefgpgknn && mv nkbihfbeogaeaoehlefnkodbefgpgknn metamask",
+    "download.metamask.prod": "mkdir -p /dist/src/extensions && rm -rf /dist/src/extensions/* && cd /dist/src/extensions && ced nkbihfbeogaeaoehlefnkodbefgpgknn && mv nkbihfbeogaeaoehlefnkodbefgpgknn metamask"
   },
   "dependencies": {
+    "@metamask/detect-provider": "^1.1.0",
     "app-root-path": "^3.0.0",
     "bip32d": "git://github.com/carsenk/bip32d.git",
     "bip39": "^3.0.2",
     "bitcoin": "git://github.com/carsenk/node-bitcoin.git",
+    "bitcoinjs-d-lib": "git://github.com/carsenk/bitcoinjs-lib-pos.git",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "bs58": "^4.0.1",
-    "cheerio": "^1.0.0-rc.3",
     "compression": "^1.7.4",
     "connect-flash": "^0.1.1",
-    "cookie-parser": "^1.4.5",
     "cpu-stats": "^1.0.0",
     "cputilization": "^1.0.0",
+    "cross-spawn": "^7.0.3",
     "crypto-js": "^4.0.0",
+    "custom-electron-titlebar": "^3.2.4",
+    "dat-swarm-defaults": "^1.0.2",
     "denariusjs": "git://github.com/carsenk/denariusjs-lib.git",
+    "discovery-swarm": "^6.1.0",
     "dotenv": "^8.2.0",
+    "electron-compile": "6.4.4",
+    "electron-extensions": "^7.0.0-beta.3",
+    "electron-log": "^4.3.0",
+    "electron-open-link-in-browser": "^1.0.2",
+    "electron-updater": "^4.3.5",
     "electrum-cash": "^1.0.1",
     "errorhandler": "^1.5.1",
     "esm": "^3.2.25",
+    "ethers": "^5.0.19",
     "express": "^4.17.1",
     "express-flash": "^0.0.2",
     "express-rate-limit": "^5.1.3",
-    "express-session": "^1.14.2",
+    "express-session": "^1.17.1",
     "express-socket.io-session": "^1.3.5",
     "express-status-monitor": "git://github.com/carsenk/express-status-monitor.git",
     "express-toastr": "^2.0.2",
     "fs": "0.0.1-security",
-    "gritty": "^4.8.13",
+    "get-port": "^5.1.1",
+    "gritty": "git://github.com/carsenk/gritty.git",
+    "hotkeys-js": "^3.8.1",
     "ip": "^1.1.5",
+    "jquery": "^3.5.1",
+    "json-storage-fs": "git://github.com/carsenk/json-storage-fs.git",
+    "keymaster": "^1.6.2",
     "level": "^6.0.1",
     "lob": "^6.1.0",
+    "lodash": "^4.17.15",
     "lusca": "^1.6.1",
+    "mkdirp": "^1.0.4",
     "morgan": "^1.10.0",
     "multer": "^1.4.2",
+    "node": "12.16.3",
     "os": "^0.1.1",
     "progressbar.js": "^1.1.0",
+    "promise-loading-spinner": "^2.2.0",
     "pug": "^3.0.0",
     "qrcode": "^1.4.4",
+    "qs": "^6.5.1",
+    "randomstring": "^1.1.5",
+    "request": "^2.88.2",
+    "rpg-awesome": "^0.2.0",
     "sha256": "^0.2.0",
     "shelljs": "^0.8.4",
     "socket.io": "^2.3.0",
     "split": "^1.0.1",
     "sprintf-js": "^1.1.2",
-    "system-sleep": "^1.3.6",
+    "strip": "^3.0.0",
     "systeminformation": "^4.26.5",
     "thirty-two": "^1.0.2",
     "toastr": "^2.1.4",
     "tribus-hashjs": "^1.0.3",
     "unirest": "^0.6.0",
     "validator": "^13.1.1",
-    "wallet-address-validator": "git://github.com/carsenk/wallet-address-validator.git"
+    "wallet-address-validator": "^0.2.4",
+    "wallet-address-validatord": "git://github.com/carsenk/wallet-address-validator.git"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.54",
+    "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
+    "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "bufferutil": "^4.0.2",
     "chai": "^4.2.0",
-    "mocha": "^8.0.1"
+    "chrome-ext-downloader": "^1.0.3",
+    "electron": "^10.1.6",
+    "electron-builder": "^22.9.1",
+    "electron-builder-squirrel-windows": "*",
+    "electron-prebuilt-compile": "8.2.0",
+    "electron-rebuild": "^2.0.3",
+    "mocha": "^8.0.1",
+    "utf-8-validate": "^5.0.3"
+  },
+  "build": {
+    "appId": "com.carsenk.kronos",
+    "productName": "Kronos",
+    "files": [
+      "dist/src/**/*",
+      "node_modules/**/*",
+      "node_modules/node-pty-prebuilt-multiarch/**/*",
+      "node_modules/node-pty-prebuilt-multiarch/build/Release/**/*",
+      "app.js",
+      "db.js",
+      "notifies.txt",
+      "restartnode.sh",
+      "installkronos.sh",
+      "start-electron.js",
+      "compiler.sh",
+      "public/notification.wav",
+      "views/**/*",
+      "controllers/**/*",
+      "public/css/kronos.css",
+      "public/css/main.css",
+      "public/css/loading-bar.min.css",
+      "public/css/lib/bootstrap-toggle.min.css",
+      "public/fonts/*",
+      "public/img/*",
+      "public/js/**/*",
+      "public/js/*",
+      "public/favicon.ico",
+      "src/**/*",
+      "bin/kronos",
+      "package.json"
+    ],
+    "asar": false,
+    "asarUnpack": [
+      "dist/src/**/*",
+      "node_modules/**/*",
+      "app.js",
+      "db.js",
+      "compiler.sh",
+      "views/**/*",
+      "public/css/kronos.css",
+      "public/css/main.css",
+      "public/css/loading-bar.min.css",
+      "public/fonts/*",
+      "public/img/*",
+      "public/js/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "",
+      "output": "dist",
+      "app": ""
+    },
+    "nodeGypRebuild": false,
+    "npmRebuild": true,
+    "buildDependenciesFromSource": true,
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "icon": "public/img/klogo.ico",
+      "category": "Office"
+    },
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": "dmg",
+      "icon": "public/img/klogo.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/img/klogo.ico"
+    }
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "icon": "public/img/klogo.ico"
+      },
+      "publishers": [
+        {
+          "name": "@electron-forge/publisher-github",
+          "config": {
+            "prerelease": false,
+            "repo": "carsenk/kronos",
+            "repository": {
+              "owner": "carsenk",
+              "name": "kronos"
+            }
+          }
+        }
+      ],
+      "github_repository": {
+        "owner": "carsenk",
+        "name": "kronos"
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "Kronos"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
   }
 }

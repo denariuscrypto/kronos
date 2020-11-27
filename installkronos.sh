@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION='v1.3.3-alpha'
+VERSION='v1.8.2-Beta'
 
 TEMP=/tmp/answer$$
 whiptail --title "Kronos ${VERSION} for Denarius"  --menu  "Installer for Kronos Secondary Layer :" 20 0 0 1 "Install Kronos w/ Denarius Config" 2 "Install Kronos w/ Denarius Config & Chaindata" 3 "Update & Upgrade Kronos ${VERSION}" 2>$TEMP
@@ -157,25 +157,17 @@ sudo apt-get install -y git unzip build-essential libssl-dev autogen automake cu
 
 sudo apt-get remove -y nodejs npm
 
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+
+sudo apt-get install -y nodejs
+
+mkdir -p ~/Kronos/DATA/storage
+
+mkdir -p ~/Kronos/DATA/kronosleveldb
+
 printf "${GREEN}Dependancies Installed Successfully!${NC}\n"
 
-printf "${GREEN}Installing NVM and Node Version 8.x!${NC}\n"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-#if [ ! -d ~/.nvm ]; then
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-source ~/.nvm/nvm.sh
-source ~/.profile
-source ~/.bashrc
-nvm install v12
-nvm use v12
-npm install -g npm
-#fi
-
-printf "${GREEN}Successfully Installed NVM and Node Version 8.x!${NC}\n"
+printf "${GREEN}Successfully Installed Node Version 12.x from NodeSource!${NC}\n"
 
 printf "${GREEN}Snap installing Denarius...${NC}\n"
 
@@ -234,22 +226,25 @@ cd kronos
 
 echo "Installing Kronos Node Modules..."
 
+sudo su
+
 npm install
+
+cd node_modules/node-pty-prebuilt-multiarch
+
+node-gyp configure
+
+node-gyp build
+
+cd ..
+
+cd ..
 
 echo "Successfully Installed Kronos Node Modules"
 
 echo "Updating Enviroment..."
 
-#Update enviroment file
-sed -i "s/.*DNRUSER=.*/DNRUSER="${PWUD1}"/" .env
-
-sed -i "s/.*DNRPASS=.*/DNRPASS="${PWPD2}"/" .env
-
-sed -i "s/.*SECRET_KEY=.*/SECRET_KEY="${PWPD3}"/" .env
-
-echo "Successfully injected generated Denarius username and password to Kronos"
-
-nohup npm start &
+nohup npm run headless &
 
 echo "Kronos and Denarius are successfully installed! Kronos is now running on port 3000, open your browser to this devices local LAN IP, e.g. 192.168.x.x:3000"
                 ;;
@@ -376,25 +371,17 @@ sudo apt-get install -y git unzip build-essential libssl-dev autogen automake cu
 
 sudo apt-get remove -y nodejs npm
 
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+
+sudo apt-get install -y 
+
+mkdir -p ~/Kronos/DATA/storage
+
+mkdir -p ~/Kronos/DATA/kronosleveldb
+
 printf "${GREEN}Dependancies Installed Successfully!${NC}\n"
 
-printf "${GREEN}Installing NVM and Node Version 8.x!${NC}\n"
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-#if [ ! -d ~/.nvm ]; then
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-source ~/.nvm/nvm.sh
-source ~/.profile
-source ~/.bashrc
-nvm install v12
-nvm use v12
-npm install -g npm
-#fi
-
-printf "${GREEN}Successfully Installed NVM and Node Version 8.x!${NC}\n"
+printf "${GREEN}Successfully Installed Node Version 12.x from NodeSource!${NC}\n"
 
 printf "${GREEN}Snap installing Denarius...${NC}\n"
 
@@ -426,12 +413,13 @@ case $(uname -m) in
     i386)   architecture="386" ;;
     i686)   architecture="386" ;;
     x86_64) architecture="amd64" ;;
+    aarch64) architecture="aarch64" ;;
     arm*)    dpkg --print-architecture | grep -q "arm64" && architecture="arm64" || architecture="arm" ;;
 esac
 
 echo ${architecture}
 
-if [ ${architecture} == "arm" ] || [ ${architecture} == "arm64" ]; then
+if [ ${architecture} == "arm" ] || [ ${architecture} == "arm64" ]|| [ ${architecture} == "aarch64" ]; then
 
   cd ~/snap/denarius/common/.denarius
   wget https://denarii.cloud/pichaindata.zip
@@ -483,22 +471,25 @@ cd kronos
 
 echo "Installing Kronos Node Modules..."
 
+sudo su
+
 npm install
+
+cd node_modules/node-pty-prebuilt-multiarch
+
+node-gyp configure
+
+node-gyp build
+
+cd ..
+
+cd ..
 
 echo "Successfully Installed Kronos Node Modules"
 
 echo "Updating Enviroment..."
 
-#Update enviroment file
-sed -i "s/.*DNRUSER=.*/DNRUSER="${PWUD1}"/" .env
-
-sed -i "s/.*DNRPASS=.*/DNRPASS="${PWPD2}"/" .env
-
-sed -i "s/.*SECRET_KEY=.*/SECRET_KEY="${PWPD3}"/" .env
-
-echo "Successfully injected generated Denarius username and password to Kronos"
-
-nohup npm start &
+nohup npm run headless &
 
 echo "Kronos and Denarius are successfully installed! Kronos is now running on port 3000, open your browser to this devices local LAN IP, e.g. 192.168.x.x:3000"
                 ;;
@@ -517,17 +508,11 @@ printf "|_/    \/|/   \__/(_______)|/    )_)(_______)\_______)\n"
 printf "Updating to Kronos Version ${VERSION}\n\n"
 
 echo "Ensuring you have NVM and v12 NodeJS/NPM"
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 
-wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-source ~/.nvm/nvm.sh
-source ~/.profile
-source ~/.bashrc
-nvm install v12
-nvm use v12
-npm install -g npm
+sudo apt-get install -y nodejs
+
+npm install -g npm node-gyp electron electron-forge electron-rebuild
 
 if [ ! -f ~/snap/denarius/common/.denarius/walletnotify.sh ]; then
 touch ~/snap/denarius/common/.denarius/walletnotify.sh
@@ -541,25 +526,9 @@ fi
 
 cd kronos
 
-sudo rm -rf node_modules
-
-sudo rm -rf package-lock.json
-
-sudo rm -rf package.json
-
-mv .env ~/.env
-
-mv kronosleveldb ~/kronosleveldb
-
 git checkout .
 
 git pull
-
-sudo rm -rf .env
-
-mv ~/.env .env
-
-mv ~/kronosleveldb kronosleveldb
 
 NODEPID=$(pidof node)
 
@@ -567,11 +536,23 @@ echo "Killing PID of Kronos for update ${NODEPID}"
 
 sudo kill -9 ${NODEPID}
 
+sudo su
+
 npm install
 
 npm update
 
-nohup npm start &
+cd node_modules/node-pty-prebuilt-multiarch
+
+node-gyp configure
+
+node-gyp build
+
+cd ..
+
+cd ..
+
+nohup npm run headless &
 
 echo "Successfully Updated Kronos to ${VERSION}, You may now login from your web browser."
                 ;;
